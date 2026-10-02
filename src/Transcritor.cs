@@ -1,4 +1,4 @@
-// Transcritor: janela para escolher audios e transcrever com o Whisper.
+﻿// Transcritor: janela para escolher audios e transcrever com o Whisper.
 // A transcricao roda no worker.py (embutido neste .exe) com o Python da maquina.
 // Compilar com build.ps1 (usa o csc.exe do .NET Framework, C# 5).
 
@@ -200,9 +200,6 @@ namespace Transcritor
             modelBox.DropDownStyle = ComboBoxStyle.DropDownList;
             modelBox.Width = (int)(380 * scale);
             modelBox.Items.Add(new ModelOption("turbo", "large-v3-turbo.pt", "rápido e quase tão bom quanto o large", "1,6 GB"));
-            modelBox.Items.Add(new ModelOption("medium", "medium.pt", "equilibrado", "1,5 GB"));
-            modelBox.Items.Add(new ModelOption("large-v3", "large-v3.pt", "o mais preciso, mais lento", "2,9 GB"));
-            modelBox.Items.Add(new ModelOption("small", "small.pt", "leve, menos preciso", "0,5 GB"));
             options.Controls.Add(modelBox);
             options.Controls.Add(NewLabel("Idioma:", scale));
             languageBox.DropDownStyle = ComboBoxStyle.DropDownList;
@@ -701,9 +698,9 @@ namespace Transcritor
 
         void LoadSettings()
         {
-            string model = ReadSetting("model") ?? "medium";
+            string model = ReadSetting("model") ?? "turbo";
             string language = ReadSetting("language") ?? "pt";
-            modelBox.SelectedIndex = 1;
+            modelBox.SelectedIndex = 0;
             for (int i = 0; i < modelBox.Items.Count; i++)
                 if (((ModelOption)modelBox.Items[i]).Name == model) modelBox.SelectedIndex = i;
             languageBox.SelectedIndex = 0;

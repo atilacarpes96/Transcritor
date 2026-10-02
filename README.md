@@ -1,6 +1,6 @@
 ﻿# Transcritor
 
-Transcritor de áudio local (Whisper na GPU) e download de vídeo do YouTube em MP3.
+Transcritor de áudio local (Whisper turbo na GPU) e download de vídeo do YouTube em MP3.
 
 - `Transcritor.exe` — janela para transcrever áudio (usa `src/worker.py`).
 - `youtube.py` — baixa o áudio de links do YouTube em MP3 (yt-dlp) e transcreve.
@@ -15,8 +15,9 @@ Python com `openai-whisper`, `torch` (CUDA) e `yt-dlp`; ffmpeg no PATH. Os camin
 ## Uso
 
 ```
-python youtube.py "URL" [URL2 ...] [--idioma pt] [--modelo turbo] [--pasta nome]
+python youtube.py "URL" [URL2 ...] [--idioma pt] [--pasta nome]
 ```
 
 Saída em `videos/<pasta>/` com o `.mp3` e o `.txt` lado a lado. Para usar a skill, copie
 `skills/transcrever-youtube` para `~/.claude/skills/`.
+

@@ -93,7 +93,7 @@ def model_is_cached(whisper, name):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--model", default="medium")
+    parser.add_argument("--model", default="turbo")
     parser.add_argument("--language", default="pt", help="codigo do idioma, ou 'auto'")
     parser.add_argument("--list", required=True, help="arquivo UTF-8 com um caminho de audio por linha")
     args = parser.parse_args()

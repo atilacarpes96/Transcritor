@@ -6,7 +6,8 @@ description: Baixar o áudio (MP3) de vídeo do YouTube e transcrever com o Whis
 # YouTube → MP3 → transcrição no PC
 
 Roda tudo local: yt-dlp baixa só o áudio, e o `worker.py` do Transcritor
-(o mesmo do `E:\Transcritor\Transcritor.exe`) transcreve com o Whisper na RTX 4070 Ti.
+(o mesmo do `E:\Transcritor\Transcritor.exe`) transcreve com o Whisper turbo na RTX 4070 Ti.
+O turbo é o único modelo baixado e em uso; não passe `--modelo`.
 
 ## Passo a passo
 
@@ -36,7 +37,6 @@ Roda tudo local: yt-dlp baixa só o áudio, e o `worker.py` do Transcritor
 | opção | padrão | quando mudar |
 |---|---|---|
 | `--idioma pt\|en\|es...` | auto | se souber o idioma, fixar melhora a pontuação (o worker dá um texto inicial pontuado em pt/en/es) |
-| `--modelo` | turbo | `large-v3` se o áudio for difícil (sotaque, ruído, termos técnicos) e o usuário quiser precisão; `medium` e `small` são mais leves. Só o turbo já está baixado: os outros baixam 1,5 a 2,9 GB na primeira vez |
 | `--pasta nome` | título do vídeo | para juntar vários vídeos de um assunto na mesma pasta (ex.: `qwen-image-2.1`) |
 
 Vários links na mesma chamada: baixa todos e transcreve em sequência carregando o modelo uma vez só.

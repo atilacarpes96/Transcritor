@@ -92,7 +92,7 @@ def main():
     ap = argparse.ArgumentParser(description="YouTube -> MP3 -> transcricao (Whisper local)")
     ap.add_argument("urls", nargs="+")
     ap.add_argument("--modelo", default="turbo",
-                    help="turbo (padrao, rapido), medium, large-v3 (mais preciso), small")
+                    help="modelo do Whisper (so o turbo esta em uso)")
     ap.add_argument("--idioma", default="auto", help="pt, en, es... ou auto")
     ap.add_argument("--pasta", default=None,
                     help="nome da subpasta em videos\\ (padrao: titulo do video)")
