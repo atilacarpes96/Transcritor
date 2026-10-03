@@ -93,6 +93,8 @@ namespace Transcritor
         readonly Button pickButton = new Button();
         readonly Button clearButton = new Button();
         readonly Button runButton = new Button();
+        readonly TextBox urlBox = new TextBox();
+        readonly Button urlButton = new Button();
         readonly Button cancelButton = new Button();
         readonly Button copyButton = new Button();
         readonly Button folderButton = new Button();
@@ -113,7 +115,7 @@ namespace Transcritor
         double currentDuration;
         string listPath;
         string workerPath;
-
+        string downloadedPath;
         public MainForm(string[] args)
         {
             Text = "Transcritor de áudio";
@@ -157,7 +159,7 @@ namespace Transcritor
             root.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f));
             root.RowCount = 8;
             root.RowStyles.Add(new RowStyle(SizeType.AutoSize));            // 0 botoes de arquivo
-            root.RowStyles.Add(new RowStyle(SizeType.Absolute, 120 * scale)); // 1 lista
+            root.RowStyles.Add(new RowStyle(SizeType.Absolute, 100 * scale)); // 1 lista
             root.RowStyles.Add(new RowStyle(SizeType.AutoSize));            // 2 opcoes
             root.RowStyles.Add(new RowStyle(SizeType.AutoSize));            // 3 progresso
             root.RowStyles.Add(new RowStyle(SizeType.AutoSize));            // 4 status
@@ -177,7 +179,19 @@ namespace Transcritor
             top.Controls.Add(pickButton);
             top.Controls.Add(clearButton);
             top.Controls.Add(hint);
-            root.Controls.Add(top, 0, 0);
+            top.SetFlowBreak(hint, true);
+            top.Controls.Add(NewLabel("Link do YouTube:", scale));
+            urlBox.Width = (int)(420 * scale);
+            urlBox.Margin = new Padding((int)(6 * scale), (int)(6 * scale), 0, 0);
+            urlBox.KeyDown += delegate(object s, KeyEventArgs e)
+            {
+                if (e.KeyCode == Keys.Enter) { e.SuppressKeyPress = true; StartDownload(); }
+            };
+            urlBox.TextChanged += delegate { UpdateButtons(); };
+            top.Controls.Add(urlBox);
+            SetupButton(urlButton, "Baixar e transcrever", delegate { StartDownload(); });
+            urlButton.Margin = new Padding((int)(6 * scale), (int)(4 * scale), 0, 0);
+            top.Controls.Add(urlButton);            root.Controls.Add(top, 0, 0);
 
             fileList.Dock = DockStyle.Fill;
             fileList.HorizontalScrollbar = true;
@@ -235,7 +249,7 @@ namespace Transcritor
             progress.Maximum = 1000;
             progressRow.Controls.Add(progress, 0, 0);
             statusLabel.AutoSize = true;
-            statusLabel.Text = "Escolha um ou mais áudios e clique em Transcrever.";
+            statusLabel.Text = "Escolha um ou mais áudios, ou cole um link do YouTube.";
             statusLabel.Margin = new Padding(0, (int)(4 * scale), 0, 0);
             progressRow.Controls.Add(statusLabel, 0, 1);
             root.Controls.Add(progressRow, 0, 4);
@@ -460,6 +474,126 @@ namespace Transcritor
             waiter.Start();
         }
 
+        // ---------- download do YouTube ----------
+
+        void StartDownload()
+        {
+            string url = urlBox.Text.Trim();
+            if (worker != null || url.Length == 0) return;
+
+            string python = FindPython();
+            if (python == null)
+            {
+                MessageBox.Show(this, "Não achei o Python (python.exe) nesta máquina.", Text, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            string root = Path.Combine(Path.GetDirectoryName(Application.ExecutablePath), "videos");
+            string template = Path.Combine(root, "%(title)s", "%(title)s.%(ext)s");
+
+            cancelled = false;
+            downloadedPath = null;
+            stderrTail.Clear();
+            output.Clear();
+            progress.Value = 0;
+            deviceLabel.Text = "";
+
+            ProcessStartInfo info = new ProcessStartInfo();
+            info.FileName = python;
+            info.Arguments = "-u -m yt_dlp --no-playlist -x --audio-format mp3 --newline --progress --print after_move:filepath -o "
+                + Quote(template) + " " + Quote(url);
+            info.UseShellExecute = false;
+            info.CreateNoWindow = true;
+            info.RedirectStandardOutput = true;
+            info.RedirectStandardError = true;
+            info.StandardOutputEncoding = Encoding.UTF8;
+            info.StandardErrorEncoding = Encoding.UTF8;
+            info.EnvironmentVariables["PYTHONIOENCODING"] = "utf-8";
+            info.EnvironmentVariables["PYTHONUTF8"] = "1";
+            string links = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), @"Microsoft\WinGet\Links");
+            info.EnvironmentVariables["PATH"] = links + ";" + (info.EnvironmentVariables["PATH"] ?? "");
+
+            Process p = new Process();
+            p.StartInfo = info;
+            p.OutputDataReceived += delegate(object s, DataReceivedEventArgs e)
+            {
+                if (e.Data != null) BeginInvoke(new Action<string>(HandleDownloadLine), e.Data);
+            };
+            p.ErrorDataReceived += delegate(object s, DataReceivedEventArgs e)
+            {
+                if (e.Data == null) return;
+                lock (stderrTail)
+                {
+                    stderrTail.Add(e.Data);
+                    if (stderrTail.Count > 40) stderrTail.RemoveAt(0);
+                }
+            };
+
+            try
+            {
+                p.Start();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(this, "Não consegui iniciar o Python: " + ex.Message, Text, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+            worker = p;
+            p.BeginOutputReadLine();
+            p.BeginErrorReadLine();
+            SetStatus("Baixando o áudio…");
+            UpdateButtons();
+
+            Thread waiter = new Thread(delegate()
+            {
+                p.WaitForExit();
+                int code = p.ExitCode;
+                try { BeginInvoke(new Action<int>(OnDownloadExit), code); } catch { }
+            });
+            waiter.IsBackground = true;
+            waiter.Start();
+        }
+
+        void HandleDownloadLine(string line)
+        {
+            if (line.StartsWith("[download]") && line.Contains("%"))
+            {
+                SetStatus("Baixando o áudio: " + line.Substring(10).Trim());
+                return;
+            }
+            if (line.StartsWith("[") || line.Length == 0) return;
+            if (File.Exists(line)) downloadedPath = line; // --print after_move:filepath
+        }
+
+        void OnDownloadExit(int exitCode)
+        {
+            worker = null;
+            UpdateButtons();
+
+            if (cancelled)
+            {
+                SetStatus("Cancelado.");
+                return;
+            }
+
+            if (exitCode == 0 && downloadedPath != null)
+            {
+                fileList.Items.Clear();
+                AddFile(downloadedPath);
+                UpdateButtons();
+                SetStatus("MP3 baixado. Transcrevendo…");
+                StartTranscription();
+                return;
+            }
+
+            string tail;
+            lock (stderrTail) tail = string.Join(Environment.NewLine, stderrTail.ToArray());
+            SetStatus("Não consegui baixar o vídeo.");
+            MessageBox.Show(this, "O download falhou (código " + exitCode + ")." + (tail.Length > 0 ? Environment.NewLine + Environment.NewLine + "Detalhes:" + Environment.NewLine + tail : "")
+                + Environment.NewLine + Environment.NewLine + "Se o vídeo é público, atualizar o yt-dlp costuma resolver: python -m pip install -U yt-dlp",
+                Text, MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
+
         void HandleLine(string line)
         {
             if (!line.StartsWith("@@")) return;
@@ -595,6 +729,8 @@ namespace Transcritor
         {
             bool running = worker != null;
             pickButton.Enabled = !running;
+            urlBox.Enabled = !running;
+            urlButton.Enabled = !running && urlBox.Text.Trim().Length > 0;
             clearButton.Enabled = !running && fileList.Items.Count > 0;
             runButton.Enabled = !running && fileList.Items.Count > 0;
             cancelButton.Enabled = running;
