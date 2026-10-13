@@ -32,6 +32,13 @@ O turbo é o único modelo baixado e em uso; não passe `--modelo`.
 
 3. Diga onde ficaram os arquivos (pasta em `E:\Programas desenvolvidos\Transcritor\videos\`).
 
+4. **Guarde o ensinamento** sempre que o pedido for além de "só transcreve" (resumo, "aprende",
+   "dá para usar no X?"): crie `E:\Programas desenvolvidos\Transcritor\aprendizados\AAAA-MM-DD-<assunto>.md`
+   no mesmo formato dos outros (link, ideia central, lições com suas palavras, o que aplicamos,
+   "lembrar quando") e acrescente uma linha nas duas tabelas do `INDICE.md` (por problema e por
+   data). Quando algo do vídeo for implementado depois, atualize o "O que aplicamos".
+   Antes de responder a um problema que pareça já ter aparecido num vídeo, leia o `INDICE.md`.
+
 ## Opções
 
 | opção | padrão | quando mudar |

@@ -29,3 +29,8 @@ Saída em `videos/<pasta>/` com o `.mp3` e o `.txt` lado a lado. Para usar a ski
 `skills/transcrever-youtube` para `~/.claude/skills/`.
 
 
+
+## Addon: aprendizados
+
+Para o Transcritor guardar o que cada vídeo ensinou e te lembrar quando o problema voltar,
+veja [ADDON-APRENDIZADOS.md](ADDON-APRENDIZADOS.md) (`python aprendizados.py iniciar | novo | listar | buscar`).
