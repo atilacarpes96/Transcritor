@@ -3,3 +3,7 @@ __pycache__/
 *.mp3
 
 aprendizados/
+Transcritor.exe
+instalacao.log
+# login do navegador: nunca versionar
+cookies.txt

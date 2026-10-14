@@ -1,8 +1,8 @@
 ﻿# Transcritor
 
-Transcritor de áudio local (Whisper turbo na GPU) e download de vídeo do YouTube em MP3.
+Transcritor de áudio local (Whisper turbo na GPU) e download de vídeo do YouTube, TikTok e Instagram em MP3 (qualquer site do yt-dlp).
 
-**Para que serve:** transformar em texto uma gravação, uma reunião ou um vídeo do YouTube, no seu PC,
+**Para que serve:** transformar em texto uma gravação, uma reunião ou um vídeo do YouTube/TikTok/Instagram, no seu PC,
 sem enviar o áudio para a internet (só o download do próprio vídeo usa a rede).
 
 **Como funciona:** a janela (`Transcritor.exe`) recebe arquivos de áudio/vídeo ou um link; para links,
@@ -16,8 +16,15 @@ ao lado do áudio. A skill `transcrever-youtube` permite pedir isso ao Claude Co
 
 ## Requisitos
 
-Python com `openai-whisper`, `torch` (CUDA) e `yt-dlp`; ffmpeg no PATH. Os caminhos assumem
-`E:\Transcritor` e `C:\Python314\python.exe`; ajuste se mudar de lugar.
+Placa de vídeo **NVIDIA** com o driver instalado (o Whisper roda na GPU). Python com `openai-whisper`, `torch` (CUDA) e `yt-dlp[default,curl-cffi]` (o `curl-cffi` é necessário para o TikTok); ffmpeg no PATH.
+
+Para instalar tudo de uma vez, dê dois cliques em `INSTALAR.bat`: ele confere a placa NVIDIA, instala Python, ffmpeg e as bibliotecas, baixa o modelo turbo, compila o `Transcritor.exe` e cria o atalho. Se você já tem um Python com essas bibliotecas, aponte a variável de ambiente `TRANSCRITOR_PYTHON` para ele e o instalador o reaproveita.
+
+Se a placa tiver pouca memória e o modelo não couber, o `worker.py` continua no processador em vez de falhar (mais devagar).
+
+## Créditos
+
+Suporte a TikTok, Instagram e outros sites do yt-dlp, instalador automático e queda para o processador quando falta memória na placa: [Thiago](https://github.com/Thiagos97) (fork [Thiagos97/Transcritor](https://github.com/Thiagos97/Transcritor)).
 
 ## Uso
 
@@ -25,7 +32,9 @@ Python com `openai-whisper`, `torch` (CUDA) e `yt-dlp`; ffmpeg no PATH. Os camin
 python youtube.py "URL" [URL2 ...] [--idioma pt] [--pasta nome]
 ```
 
-Saída em `videos/<pasta>/` com o `.mp3` e o `.txt` lado a lado. Para usar a skill, copie
+Para Instagram (e vídeos que pedem login), salve um `cookies.txt` do navegador na pasta do programa; ele é usado automaticamente e nunca vai para o git.
+
+Saída em `videos/<site>/<título>/` (ou `videos/<pasta>/` com `--pasta`) com o `.mp3` e o `.txt` lado a lado. Para usar a skill, copie
 `skills/transcrever-youtube` para `~/.claude/skills/`.
 
 

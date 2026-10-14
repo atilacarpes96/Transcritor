@@ -1,5 +1,5 @@
-# Compila Transcritor.exe com o csc.exe do .NET Framework (vem com o Windows).
-# Uso: powershell -ExecutionPolicy Bypass -File E:\Programas desenvolvidos\Transcritor\src\build.ps1
+﻿# Compila Transcritor.exe com o csc.exe do .NET Framework (vem com o Windows).
+# Uso: powershell -ExecutionPolicy Bypass -File <pasta do Transcritor>\src\build.ps1
 
 $ErrorActionPreference = 'Stop'
 $src = $PSScriptRoot
